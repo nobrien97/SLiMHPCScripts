@@ -1,0 +1,1293 @@
+---
+  title: "SLiMulating Evolution with SLiM"
+  author: "Nick O'Brien <br><span style = 'font-size: 75%;'>University of Queensland<br>School of Biological Sciences + ARC Centre of Excellence for Plant Success in Nature and Agriculture<br>  Ortiz-Barrientos Lab</span>"
+  date: '`r Sys.Date()`<br><br>`r shiny::icon("envelope")` [n.obrien@uq.edu.au](mailto:n.obrien@uq.edu.au)<br>`r shiny::icon("twitter")`  [stochasnick](https://twitter.com/stochasnick)<br> `r shiny::icon("github")` [nobrien97](https://github.com/nobrien97)'
+  output:
+    xaringan::moon_reader:
+      css: ["metropolis", "include/custom.css", "include/2col.css"]
+      lib_dir: libs
+      nature:
+        beforeInit: "include/macros.js"
+        ratio: "16:9"
+        highlightStyle: monokai
+        highlightLines: true
+        countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+xaringanExtra::use_scribble()
+xaringanExtra::use_tile_view()
+```
+
+
+class: inverse, center, middle, clear
+
+# Why use simulations to study evolution?
+```{js, echo = FALSE}
+// Change header colour by section
+var slides = document.getElementsByClassName("remark-slide-content");
+for (let i = 0; i < slides.length; i++) {
+  if (slides[i].querySelector(".header-purple") !== null) {
+    //slides[i].setAttribute("style", "border-top: 80px solid #8474D5");
+    slides[i].style.borderTop = "80px solid rgb(132, 116, 213)";
+    continue;
+  }
+  if (slides[i].querySelector(".header-red") !== null) {
+    //slides[i].setAttribute("style", "border-top: 80px solid #CE5D78");
+    slides[i].style.borderTop = "80px solid rgb(206, 93, 120)";
+    continue;
+  }
+}
+// Add SLiM logo to title slide
+slides[0].innerHTML += '<div class="logo"></div>';
+
+```
+
+???
+- Selection is hard to measure, particularly over long periods of time
+- Mathematical models are difficult to solve or intuit for complex systems.
+- Simulations offer an avenue to explore complex systems over long periods of time given particular evolutionary forces acting on them.
+
+
+---
+class: center, middle, clear
+background-image: url("./images/collage.jpg")
+background-position: center
+background-size: contain
+
+???
+- Simulations can help understand the maintenance and creation of diversity, regardless of the level of biological organisation, genotype, phenotype, community
+- We have heaps of diversity, and a lot of it is really difficult to measure in the field over long periods of time.
+
+---
+
+# Simulating evolution
+
+.pull-left[
+- Two kinds of simulation: forwards in time and backwards in time (coalescent)
+- Lots of software for both
+]
+
+.pull-right[
+![](./images/coalescent.jpg)
+]
+.footnote[Figure from Yang et al. 2014; 10.1186/1471-2105-15-3]
+
+???
+There are two main kinds of simulation: forwards and backwards in time. There are lots of implementations of both, and they have pros and cons.
+---
+# Simulating evolution: forward approach
+
+.pull-left[
+- Forward-time starts with an initial population and simulates it forwards in time.
+- Wright-Fisher model is an early example
+]
+
+.pull-right[
+![](./images/wrightfisher.jpeg)
+]
+.footnote[Figure from Tataru et al. 2016; 10.1093/sysbio/syw056]
+
+???
+- Forward time is the classic example - Wright and Fisher from the 1920s and 30s
+- Start with initial population, rules to sample parents, produce offspring, step forward a generation
+- Can be slow, especially with large populations
+---
+
+
+# Simulating evolution: coalescent approach
+
+.pull-left[
+- Take a sample from a population and trace to a MRCA.
+- Only tracks surviving lineages! 
+- Has problems tracking selection and linkage
+]
+
+.pull-right[
+![](./images/coalescent.jpg)
+]
+.footnote[Figure from Yang et al. 2014; 10.1186/1471-2105-15-3]
+
+???
+- The coalescent approach starts with a sample, working backwards to trace all alleles to a MRCA.
+- Coalescent is usually faster than forward-time: only tracks surviving lineages! 
+- Has problems tracking selection particularly with linkage
+
+
+---
+# What is SLiM?
+
+<center>![](./images/slim_desc.jpg)</center>
+- Tracks alleles ("mutations") through time
+- GUI for development, command line for production
+- Windows/Mac/Linux
+
+.footnote[https://messerlab.org/slim/]
+
+???
+- Where does SLiM fit into all of this?
+- genetically explicit forward simulation software package
+- So it tracks genomes, chromosomes, and mutations that occur on those
+- It has a user interface for developing and testing your model, and then a command line program for running experiments
+- Runs on Windows Mac and Linux
+
+---
+
+class: inverse, center, middle, clear
+
+# Why use SLiM?
+
+???
+I already mentioned that there are lots of different software packages to run simulations. So what's the advantage of SLiM?
+
+---
+
+class: center, middle, clear
+background-image: url("./images/venn.png")
+background-position: center
+background-size: contain
+
+???
+
+Typically with forward simulators you can pick two out of ease of use, speed, and flexibility. SLiM does all three very well. This partly comes from the very helpful user interface that you can use as a development environment.
+
+---
+class: center, middle, clear
+background-image: url("./images/slimgui.png")
+background-position: center
+background-size: contain
+
+???
+
+SLiM comes with a nice graphical interface which you can use to write your simulations. It has a number of features including autocomplete, help documentation, and a visualiser for the currently running simulation. This makes it really user friendly and quick to debug your scripts. I think the big thing that sets SLiM apart form the rest is the quality of documentation, which is easily accessible in a number of places including the script help menu right from the code editor.
+
+---
+
+# This talk
+.white-text[
+.content-box-blue[
+- Brief intro to SLiM
+    - Focus on how SLiM operates
+    - Reference to relevant workshops/manual chapters
+]
+.content-box-purple[
+- Writing good SLiM code
+]
+.content-box-red[
+- Running SLiM experiments using Latin hypercube sampling
+- Using high-throughput software on a HPC to parallelise SLiM runs
+]
+]
+???
+Ok, so in this talk I can't tell you how to use SLiM, that's not possible in an hour. Instead, I'll explain how SLiM actually simulates evolution and introduce some broad classes of models that might pique your interest. I'll leave references to relevant resources in the lower right corner. The goal is that you'll be interested enough to read some more into those models. I'll then pivot into some tips to writing good SLiM code before introducing a method to run SLiM experiments on HPCs using high-throughput software. Hopefully you'll be able to refer back to these sections later on when you have a model you want to run.
+
+---
+class: center, middle, inverse, clear
+# An introduction to SLiM
+---
+
+# How to learn SLiM
+
+.center[
+[*Do the online workshop!*](http://benhaller.com/workshops/workshops.html)
+]
+- Lots of resources and examples available
+    - [Workshop series](http://benhaller.com/workshops/workshops.html)
+    - [Manual](http://benhaller.com/slim/SLiM_Manual.pdf)
+    - [Google discussion group](https://groups.google.com/g/slim-discuss)
+- Don’t read the manual front to back!
+    - References to which workshop/manual section to read for more information in the bottom right of slides.
+
+???
+How do you learn slim then? There is a great workshop series online for free. You should do the first four or five and then pick and choose depending on your interests. There's also a great manual that extends a lot of the workshops and can be used as a reference, and a google group, slim-discuss where you can ask the creators of SLiM and other users questions about your code. I would definitely recommend joining the group, it's quite active and questions are answered very quickly.
+
+---
+# How to install SLiM
+
+- SLiM manual chapter 2 has very good instructions
+- Mac: Download the installer from http://messerlab.org/slim/ 
+- Linux: Use Flatpak (`flatpak install SLiMgui`)
+    - Or install from source with `cmake` + `make`
+- Windows: Install MSYS2 and install using 
+`pacman -S mingw-w64-x86_64-slim-simulator`
+
+.footnote-right[Manual Section 2]
+
+???
+Installing slim is pretty straightforward these days - there are installers for all three platforms, although you might want to build from source on linux. You can refer to the manual for instructions.
+---
+
+# What does SLiM actually simulate?
+
+- Mutation dynamics in populations
+- Population > Subpopulations > Individuals > Mutations
+![](images/populationstructure.png)
+
+.footnote-right[Manual Section 1.5]
+
+
+???
+SLiM simulates how mutations fluctuate in a population due to selection or drift over time. It does this by modelling a hierarchy of containers. At the top is the population, which is a big container of everything – all the mutations, individuals, subpopulations – everything in the population. This is then split up into subpopulations. Populations contain individuals, which contain genomes, which contain mutations. Genomes have a number of rules set which tell SLiM where certain mutations can crop up and at what rate. These rules are specified by a global SLiM chromosome.
+
+---
+
+# The SLiM chromosome
+- The SLiM chromosome consists of genomic elements.
+   - These represent a region of the genome (e.g. intron, exon, UTRs).
+- Different genomic element types have different types of mutations that occur within them.
+- Genomic elements span a defined range of the genome.
+
+<center>
+![:scale 65%](images/genomicelements2.png)
+</center>
+.footnote-right[Workshop 2]
+
+???
+The SLiM chromosome consists of genomic elements, representing different regions of a species’ genome: for example exons or untranslated regions. The genomic elements differ by which types of mutations can randomly appear within it. For instance, here we have three types of genomic elements scattered along the chromosome. In exons, neutral, deleterious, and beneficial mutations can occur, in introns, only neutral and deleterious mutations can occur, and in non coding regions there are only neutral mutations. You can also adjust the frequency of these mutations, so beneficial mutations might be more rare in an exon than deleterious or neutral ones. So what differentiates mutations?
+
+
+---
+# Mutation types
+- Represent a category of mutations – neutral, beneficial, QTL, etc.
+- Mutations randomly arise each generation at a user-defined rate
+- When a mutation is randomly sampled, a selection coefficient $(s)$ is sampled from a user-defined distribution
+
+<center>
+![:scale 50%](images/gammadist.png)
+</center>
+
+.footnote-right[Workshop 2]
+???
+Mutations can have different types, which you can use to vary how fitness effects are sampled. For instance, you can have certain mutations that have a fixed selection coefficient, so that any mutation that crops up has some selection coefficient. Other times, you might like the fitness effect to be sampled from some distribution, for instance a normal or a gamma distribution. You can also specify a dominance coefficient if you’d like that.
+
+---
+
+# Eidos: SLiM's scripting language
+.pull-left[
+- R-like syntax
+- Fast to iterate and debug
+- Lines end in ";"
+- Object-oriented
+- Zero-based indexing (!)
+- Everything is a vector, like in R
+]
+
+.pull-right[
+- Four data types
+    - Integer
+    - Float
+    - Logical (T, F)
+    - String
+- Type coercion order is logical < integer < float < string
+]
+
+<center>
+```{Rcpp eval = F}
+print("Hello, world!");
+```
+</center>
+.footnote-right[Workshop 4, Eidos manual]
+
+???
+Alright, so how do we implement our genomes and mutations? We use Eidos, the scripting language for SLiM. It’s very easy to learn, similar to R in many ways except that indexes start at 0 instead of 1 and lines must end with a semicolon. Just like in R, everything is a vector, so you can use vectorised operations for speed. It also is in general more object oriented than R is.
+
+---
+# Object-oriented programming
+- "Things" in SLiM are called "objects"
+   - e.g. A subpopulation, individual, or a mutation
+   - "Instances" of a "class"
+- Objects have different “methods” (functions) and “properties” (data) depending on their class
+    - e.g. mutations have the `selectionCoeff` property and the `setSelectionCoeff()` method
+
+[![](images/oop_intro.png)](https://www.youtube.com/watch?v=pTB0EiLXUC8)
+
+???
+So for those who don’t know, object-oriented programming is a way of organising data into structures called classes. It’s very useful for individual based simulations because we are creating a lot of instances of the same kind of object. Things are called objects, and these objects are instances of a class. A class is a way to include relevant data all together in one place. For example, we have a Mutation class with a selection coefficient and a function to set that selection coefficient. I would highly recommend watching this short youtube video explaining oop if this is new to you, it’s very helpful not just for SLiM but for many other languages including python and R.
+
+---
+# Object-oriented programming
+
+- Access object methods and properties with "."
+- In this example, ind is the object (of class `Individual`) and `containsMutations()` is a method of the `Individual` class.
+
+![](images/oop_eg.png)
+
+???
+To access the data in an object, we use the dot operator. Here’s an example: we have some individual called “ind”, which is our object. We then access its method containsMutations() with the dot operator to check whether it contains some mutation called “mutation_1”. 
+
+---
+# SLiM Script Anatomy
+.center[
+![](images/slimscript_eg.png)
+]
+
+???
+Now lets see how a SLiM script is laid out. SLiM scripts are laid out in callbacks, which are events that trigger during each generation or when certain things happen within a generation. They are contained within curly braces
+
+---
+# What happens in a generation?
+
+![](images/wfmodel.png)
+
+.footnote-right[Manual Section 1.3, Workshop 5]
+???
+In a single generation in SLiM, there are a number of things that happen. Each of the callbacks are shown with different fonts and parentheses after them. These are all points at which the user can change the default behaviour of SLiM. First, there are some early events that are triggered at the start of the generation. Then, offspring are generated by choosing parents based on precomputed fitness values. Offspring then become the parents and some more user-defined events occur in late() code blocks, which I will explain soon. After that, fitness is calculated for the new parents and the generation counter ticks over.
+
+---
+# initialize() block
+
+.pull-left[
+- Sets up the genetic structure of the simulation 
+    - Mutation rate
+    - Mutation types
+    - Recombination rate 
+    - Genome length
+    - Where mutations can appear
+]
+
+.pull-right[
+![](images/slimscript_init.png)
+]
+
+.footnote-right[Workshop 2]
+
+???
+Before the Wright-Fisher model starts ticking, SLiM needs some setup. This is what the initialize block does. It defines options including the mutation rate and mutation types as well as the genomic elements and where they exist along the SLiM chromosome. In this example, we have a mutation rate of 10^-7 per basepair, one mutation type called m1 which is neutral: it has a fixed fitness effect of 0, and 1 genomic element called g1 which only contains those m1 mutations. That genomic element is spread across 100,000 basepairs from position 0 to 99999. We also initialise a recombination rate, 10^-8 per base pair or 1cM per megabase. Note that mutation rates and recombination rates don’t have to be uniform across the whole genome, you can specify a vector with a rate for each base pair. To get a handle on all these initialize functions, I would definitely recommend doing the SLiM workshops.
+
+
+---
+# early() and late() events
+
+.pull-left[
+- Events that happen every generation before (early) and after (late) offspring generation
+- Begin with a generation number or range to run the callback
+]
+
+.pull-right[
+![](images/slimscript_early.png)
+]
+
+.footnote-right[Workshops 2, 5]
+
+???
+The early and late callbacks are called every generation just before and just after offspring are generated. In this example, an early() callback is used at generation 1 to create a new subpopulation called p1 with 500 individuals, and to print Hello world. The late() callbacks are used to output 10 genomes at generations 1000 and 2000 after offspring generation, and then all of the fixations at the end of the simulation. These callbacks are where most of your code will go. Output and setup for the next generation is usually done in the late() callbacks and population setup is often done in early callbacks.
+
+---
+# early() and late() events
+
+.pull-left[
+- early() and late() callbacks can be run over a range of generations as well.
+- In this example, doStuff() is run during early() in generations 1 to 1000 inclusive.
+]
+
+.pull-right[
+```{r eval=F}
+1:1000 early() {
+  doStuff();
+}
+```
+]
+
+.footnote-right[Workshops 2, 5]
+
+???
+You can also use a range to run a callback between certain generations. For instance, here we have an early() event that runs every generation between 1 and 1000 inclusive. 
+
+---
+
+# Other callbacks
+- `mutationEffect()`, `fitnessEffect()`, `mateChoice()`, `modifyChild()`, ...
+- Specific callbacks for when mutations arise, fitness needs to be calculated, recombination events occur etc.
+- Very customisable, many examples and recipes in the SLiM manual and workshop series.
+
+.footnote-right[Workshops 10 - 12, manual section 25]
+
+???
+There are nine other callbacks which are triggered on different events happening within SLiM. 0This is where a lot of the customisability of SLiM comes from, models can be quite sophisticated in setting out the rules for how information transfers across generations at different levels of organisation.
+
+---
+# Running a simulation
+
+<video autoplay loop>
+<source src="images/slim_run1.webm" type="video/mp4">
+</video>
+
+???
+To run the simulation after you have your callbacks written, you just hit the recycle button in the top right followed by the play button.
+
+---
+# Ending the simulation and output
+- SLiM automatically finishes the simulation when there are no script events or callbacks registered for future generations.
+- You can finish a simulation manually with the `sim` method `sim.simulationFinished()`
+- Data can be collected at any time during the simulation
+
+???
+Ok, so when you specify some callbacks and start your simulation, how does SLiM stop? It automatically does when there are no future callbacks registered. You can also use simulationFinished to end the simulation manually. While the simulation is running, you can collect data at any point, not just at the end. There are some built-in functions to collect some specific output.
+
+---
+
+# Default outputs
+- `sim::outputFull()`: Outputs information on all subpopulations, individuals, and genomes, including all segregating mutations
+    - SLiM can read this output back in with sim.readFromPopulationFile()
+- `subpopulation::outputSample()`: Samples some genomes from a subpopulation in SLiM’s native format
+    - Options for `outputSample()` in MS and VCF* formats also exist
+
+.footnote[*`outputVCFSample()` takes a sample of individuals, not genomes.]
+.footnote-right[Manual section 26]
+
+???
+The main output, outputFull() outputs information on all the subpopulations, individuals, genomes, and mutations and can be read back into SLiM to give a starting point for you to continue simulating on. However, it’s kind of unwieldy and can get quite large. For this reason, you can also sample some genomes from your population and output that data into a number of formats including MS and VCF.
+
+---
+# Tree sequences
+- SLiM can also keep track of pedigrees and output tree sequences that can be read by the popular Python library `tskit`
+    - Another Python package, `pyslim`, contains helper functions for reading in this data
+- To use tree sequence recording, use `initializeTreeSeq()` in `initialize()`
+    - Note that using tree sequence recording increases memory usage
+- Write tree sequence output with `sim.treeSeqOutput()`
+
+.footnote-right[Manual section 17, workshop 20]
+
+???
+Another feature is that SLiM can track and output tree sequences as they change over time. It also interfaces very nicely with tskit via pyslim, which makes analysing the SLiM tree sequences straightforward.  
+
+---
+
+# Custom output
+
+- You can use paste to combine all sorts of data into lines of output
+- Write output with `writeFile()`
+
+![](images/quantgenoutput.png)
+???
+But there’s much more output you can get using SLiM, and you can customize it to your needs. This is how I use custom output to write some quantitative genetics summary statistics to a file. I first calculate the relevant statistics using the inbuilt SLiM functions, and then paste that together into a comma separated string. I then use writeFile to write that string to output.csv. The append option writes the output to a new line in that file rather than overwriting it. Some of this should look pretty familiar to anyone who has used R, Eidos makes converting between R and SLiM quite straightforward. 
+
+---
+
+# Functions
+.pull-left[
+- Over 100 built-in functions
+- Can also define your own
+- Some might be familiar to R users
+    - `c()`, `paste()`, `apply()`, `seq()`, `cbind()`, `t()`, ...
+- Check out the scripting help window under "Eidos Functions" for a list
+]
+
+.pull-right[
+![:scale 50%](images/eidosfunctions.png)
+]
+
+.footnote-right[Workshop 4, Eidos manual]
+
+???
+The function I showed you on the slide was a custom one I wrote, but there are heaps of built-in functions, often very similar to those in R. The Eidos manual has a great list you can use for reference.
+---
+
+# Defining your own functions
+
+![](images/addnorm.png)
+
+- .blue-text[Return type]
+- .brown-text[Function name]
+- .red-text[Argument types]
+- .pink-text[Function arguments]
+
+.footnote-right[Workshop 4, Eidos manual]
+???
+Just like in R, you can also write your own functions which can be very useful. To write an Eidos function, you start with the keyword function, followed by the return type in brackets. This example function returns a vector of floating point numbers. The function is called addNorm, and it takes 1 argument for the input vector, which can be either a float vector or an integer vector. Note that you don't have to type out float and integer for your arguments, you can use f and i as abbreviations. The function body is encased in curly braces. It's also important to note that your functions should be outside of any callbacks or events, so don't put them in early() or initialize(), they need to be on their own.
+
+---
+# Defining your own functions
+
+```{Rcpp, eval=F}
+function (integer$) countPrimeNumbers([i$ n=1000]) {
+  bitSize = asInteger(floor(n * 0.5));
+    if (bitSize % 2 == 0) { bitSize = bitSize - 1; }
+    Bits = rep(T, bitSize);
+    maxFactor = floor(sqrt(n));
+    i = floor(maxFactor * 0.5);
+    if (maxFactor % 2 == 0) { i = i - 1; }
+    for (fac in 1:i) {
+      if (Bits[fac]) {
+        prime = fac * 2 + 1;
+        start = ( ((prime * prime ) - 1) * 0.5 );
+        Bits[seq(from=start, to=(bitSize-1), by=prime)] = F;
+      }
+    }
+  return sum(Bits);
+}
+
+```
+
+???
+Here’s another example. This function counts all of the prime numbers up to a specified number n. This time, we use the $ to specify that we only want to return a singleton value. This is a vector with exactly one entry. Enclosing the argument in square brackets means that it is an optional argument, and we include a default value for that optional argument in case it isn’t specified by the user.
+I wrote this function a long time ago in R and was able to port it from R to Eidos in about 5 minutes – I didn’t need to change any of the function names, just a single check to make sure bitSize is an integer, and the modulo operator to a single percentage sign instead of double. So if you know R, you will be able to adapt your R functions to Eidos very quickly, and often without many changes necessary.
+
+---
+# More specialised models
+- These models bend the rules I've shown you so far
+- Specific use-cases
+- The manual contains recipes and information on all of these!
+<br><br>
+<center>
+![:scale 30%](images/slim_icon.jpg)
+</center>
+
+???
+Now I've shown you the basics of the wright fisher model, I'll briefly introduce some more specific models which tweak those rules a bit. In the lower right corner, there will be references to manual sections if you want to learn more.
+---
+# Nucleotide-based models
+- SLiM chromosome has a DNA sequence
+- Mutations associated with nucleotides
+- Mutations don’t have to change the sequence
+    - Can use a mixture of standard SLiM mutations and nucleotide point mutations
+- Can read and write in FASTA and other sequence formats
+<br><br>
+<center>
+![:scale 60%](images/nucleotide.png)
+</center>
+.footnote-right[Manual section 1.8]
+
+???
+- With nucleotide based models, the slim chromosome is expressed by nucleotides
+- requires an ancestral sequence, tools to import or randomly generate
+- Mutations associated with nucleotides
+- Mutations don’t have to change the sequence
+    - Can use a mixture of standard SLiM mutations and nucleotide point mutations to model coding sequence vs epigenetic changes
+- Can read and write in FASTA and other sequence formats
+
+---
+# Multi-species models
+- New to SLiM 4
+- Species can have different genetics or no genetics
+.center[
+![:scale 50%](images/multispecies.png)
+]
+.footnote-right[Manual section 1.9]
+???
+- New to SLiM 4
+- Species can have different genetics: genomes with different lengths, different genomic elements and types, different mutation types etc.
+    - You can even model species without any genetics, having them interact with some other species you are interested in genetically
+- In the single species design in A, you have one SLiM chromosome type, and subpopulations etc coming off that.
+- In the multispecies design, you can have multiple SLiM chromosomes with different genetics.
+- Haven't looked into this too much yet, but seems very helpful for eco-evo
+
+---
+# Non-Wright-Fisher models
+
+- So far everything I’ve shown is in a Wright-Fisher model
+- non-Wright-Fisher models use fitness to govern *mortality* rather than *mating success*
+    - Population size is driven by the balance between individual reproduction and mortality
+- Interesting if you want to model population mortality, but performance costs!
+
+.footnote-right[Manual section 16, workshop 15]
+
+???
+- So far everything I’ve shown exists in a Wright-Fisher space
+    - Non-overlapping generations
+    - Fixed population size
+- nonWF models use fitness to govern mortality rather than mating success
+    - Generations can overlap
+    - Population size is driven by the balance between individual reproduction and mortality
+    - Migration is also individually based rather than on some migration rate
+- Interesting if you want to model population mortality, but performance costs!
+---
+# Per-locus models
+- The positions along the SLiM chromosome don’t have to be base-pairs
+- Mutations represent any mutation within a locus that affects its fitness effect
+- Need to adjust recombination rates and mutation rates accordingly
+- Assumes complete linkage between all "sites" in each locus
+
+???
+- The positions along the SLiM chromosome don’t have to be base-pairs
+- Can treat them as loci: mutations represent any type of mutation (including indels) within that locus that have changed its effect on fitness
+- Need to adjust recombination rates and mutation rates according to this
+- Assumes complete linkage between all "sites" in each locus
+
+---
+# Other models I don’t have time to go into detail on
+
+- Chances are, if you can think of it, there is a recipe in the SLiM manual
+.center[
+![:scale 80%](images/recipes.png)
+]
+
+???
+- SLiM's manual has a long section devoted to different types of models.
+- There are another two pages of this!
+    - Phenotype/QTL models
+    - Spatial models
+    - Multi-population models with one-way or multi-way migration
+    - Sex chromosome models
+    - Selfing and clonal models
+    - Coevolutionary host-parasitoid models
+    - Hybrid coalescent-forward time models (with tskit and pyslim)
+    - Habitat choice
+    - Meiotic drive
+    - Sympatric speciation
+---
+class: inverse, center, middle, clear
+background-color: rgb(132, 116, 213)
+
+# Writing good SLiM code
+
+---
+
+.header-purple[
+# Vectorisation
+- Loops (`for` and `while`) are SLOW
+- Use vectorised function calls!
+
+.pull-left[
+## Good
+```{r eval=F}
+res = 1:10 + 10; 
+```
+]
+
+.pull-right[
+## Bad
+```{r eval=F}
+res = integer(10);
+for (i in 1:10) {
+  res[i-1] = i + 10;
+}
+```
+]
+]
+
+???
+Just like in R, loops are slow - you should always try to use vectorised functions when you can
+
+---
+.header-purple[
+# Comments
+- Single-line comments begin with `//`
+- Multi-line comments begin with `/*` and end with `*/`
+
+```{Rcpp eval = F}
+function (void) calcFitnessGaussian(o<Individual> inds, fi$ optimum) {
+  /* Calculate fitness from phenotype. */
+  phenotypes = inds.getValue("phenotype");
+  dists = (phenotypes - optimum)^2;
+  
+  // Make sure that phenotype is never below 0 
+  dists[dists < 0] = 0.0;
+  // Lande 1976: width is 1/2w^2
+  inds.fitnessScaling = exp(-(dists * width)); 
+}
+```
+]
+
+???
+- It's also important to comment your code so that you or others can understand it later
+- Comments are the same as C
+
+---
+.header-purple[
+# The source() function
+- Can't make packages like in R, but you can use `source()`
+- Separate your commonly used functions into separate files and run source() to load them.
+- Keeps your script files readable and concise.
+
+.pull-left[
+## Good
+```{r eval=F}
+source("./functions.slim"); 
+```
+]
+
+.pull-right[
+## Bad
+<video autoplay loop muted>
+<source src="images/longscript.webm" type="video/mp4">
+</video>
+]
+]
+
+???
+- Separating your code makes it much easier to interpret, and you don't repeat yourself as much
+- Save time by loading some common functions in a file rather than copy-pasting into every script
+
+---
+.header-purple[
+# Simulating large genomes
+- If you are only interested in some regions, you can add empty space between genomic elements to reduce memory and CPU usage.
+
+.pull-left[
+## Good
+<video loop autoplay>
+<source src="images/long_genome_short.webm" type="video/mp4">
+</video>
+]
+
+.pull-right[
+## Bad
+<video loop autoplay>
+<source src="images/long_genome.webm" type="video/mp4">
+</video>
+]
+]
+
+???
+I have an extreme example here, but by not explicitly modelling certain regions, you can save a fair amount of time. 
+
+---
+.header-purple[
+# Recombination rate
+- Genome-wide independence is costly
+
+.pull-left[
+$r = 10^{-8}$ across $10^6$ bp
+<video loop autoplay>
+<source src="images/lowrecom.webm" type="video/mp4">
+</video>
+]
+
+.pull-right[
+$r = 0.5$ across $10^6$ bp
+<video loop autoplay>
+<source src="images/highrecom.webm" type="video/mp4">
+</video>
+]
+]
+
+???
+Another thing is that high recombination rates can be costly - if you want to model high recombination, you will need to consider a small genome, perhaps with a per-locus approach, or make sure the high-recombination region is quite small.
+
+---
+.header-purple[
+# Using constants to store inputs
+- Follow DRY: Don't Repeat Yourself!
+- use `defineConstant()` in `initialize()` to store your parameters
+
+.pull-left[
+## Good
+```{Rcpp eval=F}
+initialize() {
+  defineConstant("N", 500);
+}
+1 early() {
+  sim.addSubpop("p1", N);
+} 
+2000 late() {
+  print(N);
+  return;
+}
+```
+]
+.pull-right[
+## Bad
+```{Rcpp eval=F}
+initialize() {
+  // Nothing
+}
+1 early() {
+  sim.addSubpop("p1", 500);
+}
+2000 late() {
+  print(500);
+  return;
+}
+```
+]
+]
+
+???
+Another good practice is using constants to store your inputs - this way you can change your parameters at the start of your script in the initialize block, and you don't have to change any numbers around elsewhere in your script.
+
+---
+.header-purple[
+# Using tags
+- `tag` stores singleton integers, `tagF` stores singleton floats
+    - Very quick to access
+    - Useful for storing information like a phenotype on an individual
+- `setValue()`/`getValue()` can store anything
+- `sim.setValue()`: global variables, accessible from any callback
+
+```{Rcpp eval=F}
+1 early() {
+  sim.setValue("QTL_positions", sample(0:(genomelength-1), 10));
+}
+
+1000 late() {
+  QTL_positions = sim.getValue("QTL_positions");
+  print(QTL_positions);
+}
+
+```
+]
+
+???
+Tags are a way to store extra information on objects in SLiM. For isntance, you can store a phenotype value in an individual's tagF value. These tags can only store singletons and are very fast to access. You can also use setValue and getValue to store vectors. For instance, I use sim.setValue() to create global variables I can access from any callback. In this example, I sample 10 sites along the genome to be QTLs and print those positions out later in a late() event.
+---
+.header-purple[
+# The script help window
+
+.pull-left[
+## ALT(OPT)+LMB
+<video width="800" height="400" autoplay loop>
+<source src="images/scripthelp_altclick.webm" type="video/mp4">
+</video>
+]
+
+.pull-right[
+## (?)
+<video width="800" height="400" autoplay loop>
+<source src="images/scripthelp_question.webm" type="video/mp4">
+</video>
+]
+]
+
+???
+You can access help documentation right from the code window! You can either click the question mark in the top left of the code editor pane, or hover over a function and alt click, or option click if on mac. If you’re ever stuck, this is a really helpful resource!
+
+---
+.header-purple[
+# Autocomplete
+
+- If you press <kbd>Esc</kbd> while typing in the code pane, a pop up window will appear showing potential options. 
+- For this to work with simulation objects (e.g. `Individual`), you need to have a simulation in memory (press recycle and step 1 generation)
+
+<center>
+<video autoplay loop>
+<source src="images/autocomplete.webm" type="video/mp4">
+</video>
+</center>
+]
+???
+You can also use autocomplete to quickly search available methods and properties of objects by pressing escape
+
+---
+class: center, middle, inverse, clear
+background-color: rgb(206, 93, 120)
+# Running SLiM experiments and HPC
+---
+.header-red[
+# Running SLiM experiments
+- Typically want to explore a range of input parameters: how does the model respond to different perturbations?
+    - Selection strength, distributions of mutations, population size, mutation rate, recombination rates, etc.
+- Need replicates since these are stochastic models
+- Burn-in to create variability for selection to act on
+]
+
+???
+Alright, so you've built your model and now you want to test it. You want to see how evolution occurs with different inputs: population sizes, selection strengths, recombination rates and so on. So you need your experiment to have different treatmentts with combinations of these variables, and you need replicates to account for the effects of drift and migration. I'll get in to those soon, but first you need to make sure that your models start from an equivalent state - this is what burn-in is for.
+
+---
+.header-red[
+# Burn-in 
+- The SLiM genomes start empty (no mutations – "wildtype" at all genome positions)
+- A burn-in period generates standing variation
+- Include a burn-in callback event prior to your test period
+
+```{Rcpp eval=F}
+1:10000 late() {
+  measurePopulationVariability();
+  if (usingSelectionDuringBurnIn) {
+    applyStabilisingSelection(optimum=0.0);
+  }
+}
+```
+- Rule of thumb: $10N$ generations
+]
+
+???
+The SLiM genomes start empty - there are no mutations at all. This is often undesirable as there isn’t any standing variation, which is what you'd expect in a population.
+A burn-in period generates some standing variation for selection to act on
+Can be neutral or under whatever selective regime you’d like
+A general rule of thumb is to burn in for 10 times the population size, but you might find it more rigorous to measure population diversity with pi, Tajima's D, or heterozygosity and compare those to expectations under mutation-drift equilibrium or mutation-selection-drift equilibrium
+
+---
+.header-red[
+# Latin hypercube sampling
+
+.pull-left[
+- Parameter space can get very large very fast
+- What about a continuous range of parameters?
+- Factorial designs aren't always possible
+]
+
+.pull-right[
+![](images/hypercube.png)
+]
+]
+
+???
+Alright, so lets get back to testing our model. We have a number of input parameters and we want to explore their ranges.
+The problem with sampling models is that often there are a lot of interesting parameter inputs. This means the parameter space gets very large very quickly. With just 3 levels of 5 parameters, you have 243 combinations to test before any replicates. With more levels, it gets worse. And what if you want to sweep across a continuous range of a parameter? We clearly need a better sampling technique
+
+---
+.header-red[
+# Latin hypercube sampling
+
+.pull-left[
+- Each sample is a combination of all the parameters you are interested in
+- Goal: minimize correlations between variables and maximise the total parameter space explored
+- More parameters = more samples to properly explore the space
+]
+
+.pull-right[
+![](images/hypercube.png)
+]
+]
+
+???
+In latin hypercube sampling, you sample parameter ranges. Each sample is a number for each parameter you are interested in. For instance, if you are sampling A B and C, a single sample will have a value for A B and C. Together, all the samples are chosen to minimize correlations between variables and to maximise the total parameter space being explored. With more parameters, you need more samples to do this job adequately.
+
+---
+.header-red[
+# Creating Latin hypercube samples in R
+
+.pull-left[
+- `DoE.wrapper` package for R makes it ridiculously easy
+    - Uses `LHS` under the hood
+- `ggally::ggpairs()` to plot pairwise combinations
+- Export your samples to a .csv
+]
+
+.pull-right[
+```{r eval=F}
+library(DoE.wrapper)
+library(GGally)
+lhc <- lhs.design(nruns = 256, 
+nfactors = 3, type = "maximin", 
+factor.names = list(
+  "N" = c(100, 10000),
+  "s" = c(-0.1, 0.1),
+  "r" = c(0.0, 0.5)
+  ))
+ggpairs(lhc)
+write.csv(lhc, "./hypercube.csv")
+```
+]
+]
+
+???
+Here’s an example of how to generate a hypercube in R – the DoE wrapper package makes it really easy – just call the lhs design function, specify the number of samples you want with nruns, the number of parameters you are varying with nfactors, and then the names and ranges for each factor. 
+
+---
+.header-red[
+# Creating Latin hypercube samples in R
+
+.pull-left[
+- `ggally::ggpairs()` to plot pairwise combinations
+    - Visual diagnostic
+- `DiceDesign` for discrepancy metrics
+]
+
+.pull-right[
+![](images/ggpairs.png)
+]
+]
+
+???
+When you run ggpairs, you’ll get a grid of plots: the density of each parameter in the diagonals, the pairwise scatterplots in the lower triangle, and the pairwise correlations in the upper triangle. You want the correlations to be as small as possible, the density to be as close to a uniform distribution as possible, and for the spread of points in the scatterplots to not have any obvious missing points: that area won’t be sampled. If you have problems with any of those, you’ll need to either decrease the number of parameters you are considering or increase the number of samples. If you're after a more rigorous test of the hypercube samples, you can use discrepancy metrics like L2 star, in R you can use the DiceDesign package to find those
+
+---
+.header-red[
+# Latin hypercube sampling
+![](images/csv.png)
+]
+
+???
+When you export your hypercube to csv, it should look like this – each row is a sample, each column is one of your parameter inputs. So each row is a different experimental treatment, and running all of the rows gives you the total experimental design. Another bonus of running this way is you can save a lot of storage space by reusing information from the hypercube.
+
+---
+.header-red[
+# Model Index
+
+- When you run many simulations, your output data can get very large
+- To save space avoid storing redundant data
+- You only need a model index – the row number in your hypercube
+
+
+## Bad
+```{r eval=F}
+meanline = paste(sim.generation, asString(getSeed()), N, s, r, phenomean, sep=",");
+```
+
+## Good
+```{r eval=F}
+meanline = paste(sim.generation, asString(getSeed()), modelindex, phenomean, sep=",");
+```
+]
+
+???
+When you output from SLiM, if you include all of your input parameters, that’s a lot of redundant information that is going to be repeated over and over again in your file. Instead, you can have this modelindex to tell you what row in your hypercube to go to to look up your parameter values and add the parameters as needed when you do your analysis.
+
+---
+.header-red[
+# Replicates
+- Use random number “seeds”
+- Important to generate these from a known algorithm
+    - Mersenne Twister is good
+```{r eval = F}
+seeds <- data.frame(Seed = sample(0:.Machine$integer.max, x))
+write.csv(seeds, "seeds.csv")
+```
+
+.footnote-right[Manual section 20.1]
+]
+
+???
+Alright, so you have your parameter combinations, but you also need replicates for each of your experiments. To do this, you need to use different seeds. The seed is the starting point of the random number generator that decides where and when mutations appear, how drift influences parent choice and so on. You want a good random algorithm to choose seeds from, otherwise you can end up with weird biases in what seeds are sampled, which might impact the sampling of the stochastic space of your SLiM experiments.
+Another tip: Some functions in SLiM can use 64-bit seeds, others use 32-bit: just use a 32 bit seed to be safe, still plenty of randomness
+
+---
+.header-red[
+# Running SLiM from the command line
+- Rather than using SLiMgui, you can call `slim` from the terminal
+- -s specifies seed
+- -d specifies a constant, in the same way that defineConstant() works
+- -h for help
+
+```{bash eval=F}
+slim -s 123 -d N=10000 -d r=1e-8 ./slimScript.slim
+```
+]
+
+???
+So how do we run our experiment? We need to run SLiM from the command line and pass in our seed and parameter values. We can simply run slim from the terminal and use dash s and dash d to feed in our values, followed by the path to our simulation script.
+
+
+---
+.header-red[
+# defineConstant() and -d
+
+- If you are using `defineConstant()` in your script, you’ll get errors when using `–d` from the command line to define the same constant
+- So you need a helper function that only runs `defineConstant()` if that constant doesn’t already exist.
+
+```{Rcpp eval=F}
+function (void) setCfgParam(s$ key, ifls value) {
+  if (!exists(key)) {
+    defineConstant(key, value);
+  }
+}
+```
+]
+
+???
+If you try and run your slim script and you use defineConstant, you might find it crashes. This is because the dash d command defines a constant before the slim script is even read, so when you go to define a constant with the same name, slim spits out an error. Since it’s meant to stay constant and not be changeable. This little helper function will stop those crashes – so just replace all your defineConstant calls with setCfgParam and you’ll be set.
+
+---
+.header-red[
+# setSeed() and -s
+- The Eidos analogue to `-s` is `setSeed()` 
+- You will also need another helper function to set seeds so that `-s` isn't overwritten by `setSeed()`
+
+```{Rcpp eval=F}
+initialize() {
+  if (!exists("slimgui")) {
+    setCfgParam("seed", getSeed());
+  }
+  else {
+    setSeed(asInteger(round(runif(1, 1, 2^62 - 1))));
+    setCfgParam("seed", getSeed());
+  }
+}
+
+```
+]
+
+???
+You'll probably have a similar problem with setting seeds: if you manually set a seed in your slim script, that will overwrite the one you are feeding into the command line with -s
+
+---
+.header-red[
+# Sublaunching SLiM
+
+- Can use any language with a way to run system commands to sublaunch slim 
+- General approach: nested for loop
+    - First level to iterate over seeds
+    - Second level to iterate over parameter combinations
+    - Feed in the appropriate parameter combination and seed to the slim command programmatically
+]
+
+???
+Ok, so that’s all well and good to run a single slim run, but we need to run heaps of them with different seeds and hypercube samples. We can make the computer do that tedious busywork while we go back to browsing reddit and thinking about writing that grant application. You sublaunch slim in any language as long as you can use a system function to run some program. The general approach is you have two for loops iterating over your seeds and your hypercube samples, which you use to sublaunch a slim instance.
+
+---
+.header-red[
+# An example SLiM sublauncher in R
+```{r eval=F}
+seeds <- read.csv("~/Desktop/seeds.csv", header = T)
+combos <- read.csv("~/Desktop/hypercube.csv", header = T)
+#Run SLiM
+for(i in 1:nrow(combos)) {
+  for(j in seeds$Seed) {
+    system(sprintf("/path/to/slim -s %s -d N=%i –d r=%s ~/example.slim", 
+    as.character(j), 
+    as.integer(combos[i,]$N), 
+    combos[i,]$r, intern=T))
+  }
+}
+```
+]
+
+???
+Here’s an example in R. We read in a csv of seeds and a csv of combinations. Then we iterate over each row of both of those files and programmatically fill in the slim command using a c style formatted string. Those percentage signs are placeholders that are replaced by the other arguments of the sprint function. You can also use the future packages to do this in parallel.
+
+---
+.header-red[
+# HPC - Installing SLiM
+- On Tinaroo: `module load R/4.1.0+SLiM`
+    - This is SLiM 3.6, so if you need newer functionality, you might want to build your own version
+- Depending on your HPC, you might need to build SLiM from source
+- Instructions in the manual, but need to load modules for
+    - gcc
+    - cmake
+
+.footnote-right[Manual section 2.2.3]
+]
+
+???
+So now we have a method to run a SLiM experiment, we want to offload that work to an HPC with many cores so it can do the work quickly and without keeping our computer captive. The first thing to do is to build slim. 
+
+---
+class: top left
+background-image: url("images/qr.png")
+background-position: bottom right
+
+.header-red[
+# HPC - Running SLiM in parallel
+- Very straightforward – SLiM is single-threaded, embarrassingly parallel
+- Most efficient: use embedded Nimrod on UQ Tinaroo (and Bunya)
+    - `nci-parallel` on NCI Gadi
+- Requires a Nimrod job script and a sublauncher script
+]
+
+???
+- To run SLiM in parallel on an HPC it's very straightforward - SLiM runs on a single core, so its easy to parallelise
+- We can use a high throughput program on an HPC to delegate SLiM experiments for us. 
+- On Tinaroo this software is called embedded Nimrod. Nimrod separates each combination of hypercube sample and seed into a separate task. 
+- To give it information on how to split up the job into tasks and what to do in each task, we need two files: a nimrod job script and a sublauncher script. 
+- I have made a couple of example scripts that you can use as templates for your own jobs.
+
+---
+.header-red[
+# HPC - Nimrod script
+- Splits the job into smaller tasks (one task for each hypercube sample/seed combination)
+- Runs the R sublaunching script for each row in your seeds file and your hypercube file
+
+```{bash eval=F}
+#NIM parameter LS integer range from 1 to 100 step 1
+#NIM parameter SEED integer range from 1 to 10 step 1
+Rscript nimrod_eg.R ${NIMROD_VAR_SEED} ${NIMROD_VAR_LS}
+
+```
+
+.footnote-right[https://rcc.uq.edu.au/training]
+]
+
+???
+The nimrod script has a lot of the boilerplate that needs to be there for a HPC job script. For anyone who doesn’t know about PBS scripts or much about bash scripts on the HPC, I’d recommend signing up for a training session. The important thing is that nimrod creates tasks which each launch a slim process on a different CPU core. The number of tasks and the parameters they are assigned is given by the #NIM parameter tag. So in this example, we have a nim parameter for the combo and the seed. There are 100 combos and 10 seeds, for a total 1000 nimrod tasks. We can pass in the seed and hypercube values to a sublauncher script to launch slim with the appropriate seed and combo. 
+
+---
+.header-red[
+# HPC - Sublauncher script
+
+```{r eval=F}
+#first argument is the seed, second argument is the combo
+i <- as.numeric(args[1])
+j <- as.numeric(args[2])
+
+hypercube <- read.csv("./hypercube.csv", header = T)
+seeds     <- read.csv("./seeds.csv", header = T)
+
+system(sprintf("slim -s %s -d N=%i -d r=%s -d s=%s modelindex=%i /example.slim",
+               as.character(seeds$Seed[i]), 
+               as.integer(round(hypercube$N[j])), 
+               as.character(hypercube$r[j]),
+               as.character(hypercube$s[j]), 
+               j, intern=T))
+```
+]
+
+???
+In the R script, we are loading in two arguments, the seed and combo row numbers. We can use those as indices to select the right rows from our hypercube and seeds files. This script is run for every task: so each combination of a hypercube sample and a seed will run this script, with its own slim instance.
+
+---
+.header-red[
+# HPC - Handling file outputs
+- Avoid writing to the same output file at once
+- Have each slim run write to separate files, glue them all together at the end of the job
+- Use an identifier and add as an affix to your output name
+
+```{Rcpp eval=F}
+setCfgParam("sim_id", paste(asString(seed), modelindex, sep = "_"));
+setCfgParam("outputFileName", paste0('output', identifier, '.csv'));
+
+...
+
+writeFile(outputFileName, output);
+```
+]
+
+???
+When you have your nimrod job running, you might be tempted to use the append flag in writeFile() to simulatenously write to the same output. This is a bad idea though and can lead to breaking your output. It's much safer to have each of your tasks write to a separate file and glue them together after all the tasks are done. To do this, you'll need to add an identifier which combines your seed and modelindex. This is a unique id for each of your tasks. 
+
+---
+.header-red[
+# HPC - Finishing the job
+- After all the tasks have finished, you need to join together your outputs, which you can do with `cat`
+
+```{bash eval=F}
+cd /path/to/output
+# Join output files
+cat output_* > output.csv
+# Remove the individual output files
+rm output_*
+```
+]
+
+???
+After the nimrod job is done, you'll have all your separate outputs in your scratch folder. To join them together into a single file, you can use the cat command. You might also want to remove the individual files with rm
+---
+.header-red[
+# Miscellaneous tips for HPC usage
+- Make sure you use the local filesystem for nodes (`$TMPDIR`) and that you move your output to `/scratch` at the end of each task
+- I have a lot more on running SLiM on HPCs at https://nobrien97.github.io/PolygenicSLiMBook 
+- There are some other examples of sublaunching scripts available at https://github.com/MesserLab/SLiM-Extras
+]
+
+???
+Alright, so some various extra things for the HPC: 
+- make sure you use the local node filesystem in your scripts, called tmpdir. This will be much faster and less annoying to other HPC users than if you were writing directly to scratch often.
+- I have some other example sublaunchers for python, bash, and C++ if you're crazy in this little guide I wrote. It's a bit out of date, but the concepts still apply, and the non-slim scripts will still work.
+- There's also some info on running in parallel on your local machine and some other tips about estimating memory usage and time to completion of your slim jobs.
+- And the SLiM extras github repo has a lot of additional material as well, not just for HPCs.
+---
+
+# Need for speed?
+- SLiM is open source
+    - C++
+- No documentation
+
+.center[
+![:scale 60%](images/slimc.png)
+]
+
+???
+- If you need to solve things really fast and vectorization isn’t an option, you might need to modify SLiM’s C++
+- Well written and commented, but no documentation
+- Not really built to be modified, but it can be done
+
+---
+# Acknowledgments
+.pull-left[
+Thanks to
+- Ben Haller
+- Daniel Ortiz-Barrientos
+- Jan Engelstaedter
+- Barbara Holland
+- The OB Lab
+]
+
+.pull-right[
+![](images/xkcdfixingproblems.png)
+]
+.footnote-right[https://xkcd.com/1739/]
+
+

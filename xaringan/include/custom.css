@@ -1,0 +1,276 @@
+@import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+@import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+@import url(https://fonts.googleapis.com/css?family=Source+Code+Pro:400,700);
+
+body {
+  font-family: 'Droid Serif', 'Palatino Linotype', 'Book Antiqua', Palatino, 'Microsoft YaHei', 'Songti SC', serif;
+}
+
+h1, h2, h3 {
+  font-family: 'Yanone Kaffeesatz';
+  font-weight: normal;
+}
+
+.remark-code, .remark-inline-code {
+  font-family: 'Source Code Pro', 'Lucida Console', Monaco, monospace;
+}
+
+.remark-slide-content > h1 {
+  font-family: 'Yanone Kaffeesatz';
+}
+
+.remark-slide-content > h2 {
+  margin-bottom: -20px;
+}
+
+.remark-slide-content {
+  /* border-top: 80px solid #167c96; */
+  border-top: 80px solid #5e82c2;
+}
+
+.remark-slide-number {
+  /* disable slide numbering */
+  opacity: 0;
+  font-family: 'Yanone Kaffeesatz';
+}
+
+.inverse .remark-slide-number {
+  /* disable slide numbering */
+  opacity: 0;
+  font-family: 'Yanone Kaffeesatz';
+  background-color: #5e82c2;
+}
+
+.inverse {
+  background-color: #5e82c2;
+}
+
+
+hr, .title-slide h2::after, .mline h1::after {
+  background-color: #ce5d78;
+  color: #ce5d78;
+}
+
+.clear{
+  border-top: 0px solid #FAFAFA;
+}
+
+.clear h1 {
+  font-size: 80px;
+}
+
+
+
+a, a > code {
+  color: #002458; /*default: rgb(249, 38, 114); || sets color of links */
+  text-decoration: none; /* turns off background coloring of links */
+}
+
+.title-slide {
+  /*background-color: #23373B; */
+  background-color: #5e82c2;
+  border-top: 0px solid #FAFAFA;
+}
+
+.title-slide h1 {
+  color: #F7F8FA;
+  font-size: 80px;
+}
+
+.title-slide h2 {
+  font-size: 50px;
+  color: #e7e8e2; 
+  line-height: .5em;
+  margin-bottom: 0px;
+}
+
+.title-slide h3 {
+  font-size: 30px;
+  color: #e7e8e2; 
+  line-height: .75em;
+}
+
+.title-slide.remark-slide-content:before{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  top: 82%;
+  left: 5%;
+  content: "";
+/*  background: url("./pics/logos/logos.png") 0 0; */
+  background-repeat: no-repeat;
+  background-size: 90%;
+}
+
+.remark-slide-content {
+  font-size: 28px;
+  padding: 1em 4em 1em 4em;
+}
+
+
+.small {
+  font-size: 22px;
+}
+
+.tiny {
+  font-size: 16px;
+}
+
+.large {
+  font-size: 36px;
+}
+
+.huge {
+  font-size: 42px;
+}
+
+div.footer {
+  position: absolute;
+  bottom: 4px;
+  right: 0px;
+  height: 25px;
+  width: 20%;
+}
+div.footer span {
+  font-size: 7pt; /*  */ 
+  color: #23373B;
+  position: absolute;
+  right: 15px;
+  bottom: 1px;
+}
+
+.footnote {
+  font-size: 10pt;
+  position: absolute;
+  left: 15px;
+  bottom: 10px;
+}
+
+.footnote-right {
+  font-size: 12pt;
+  color: #23373B;
+  position: absolute;
+  right: 15px;
+  bottom: 1px;
+}
+
+.large {
+  font-size: 200%;
+}
+
+/******************
+ * 
+ * Coloured content boxes
+ *
+ ****************/
+
+
+.content-box { 
+    box-sizing: content-box;
+    	background-color: #e2e2e2;
+  /* Total width: 160px + (2 * 20px) + (2 * 8px) = 216px
+     Total height: 80px + (2 * 20px) + (2 * 8px) = 136px
+     Content box width: 160px
+     Content box height: 80px */
+}
+
+
+.content-box-blue,
+.content-box-gray,
+.content-box-grey,
+.content-box-neutral,
+.content-box-duke-green,
+.content-box-green,
+.content-box-purple,
+.content-box-red,
+.content-box-yellow {
+    border-radius: 15px;
+    margin: 0 0 25px;
+    overflow: hidden;
+    padding: 10px;
+    width: 100%;
+}
+
+.content-box-blue {
+    /* set opacity in last decimal value of rgba */
+    background-color: rgb(94, 130, 194);
+    background-color: rgba(94, 130, 194,.85);
+
+}
+
+.content-box-gray {
+    /* set opacity in last decimal value of rgba */
+    background-color: rgb(102, 102, 102);
+    background-color: rgba(102, 102, 102,.85);
+}
+
+.content-box-grey {
+  /* set opacity: uncomment rgba line */ 
+  /* alter opacity with last decimal value of rgba */
+	background-color: rgb(181, 181, 181);
+  /* background-color: rgba(181, 181, 181,.85); */
+}
+
+.content-box-purple {
+  /* set opacity in last decimal value of rgba */
+	background-color: rgb(132, 116, 213);
+  background-color: rgba(132, 116, 213, .85);
+}
+
+.content-box-red {
+  /* set opacity in last decimal value of rgba */
+	background-color: rgb(206, 93, 120);
+  background-color: rgba(206, 93, 120,.85);
+}
+
+.content-box-yellow {
+  /* set opacity in last decimal value of rgba */
+	background-color: rgb(255, 217, 96);
+  background-color: rgba(255, 217, 96, .85);
+}
+
+
+.full-width {
+    display: flex;
+    width: 100%;
+    flex: 1 1 auto;
+}
+
+.remark-code {
+  font-size: 80%;
+}
+
+.blue-text {
+  color: #0000FF;
+}
+
+.brown-text {
+  color: #806631;
+}
+
+.red-text {
+  color: #FF0000;
+}
+
+.pink-text {
+  color: #CF67EA;
+}
+
+.white-text {
+  color: #FFFFFF;
+}
+
+.logo {
+  background-image: url("../images/slim_icon.jpg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: absolute;
+  bottom: 1em;
+  right: 1em;
+  width: 256px;
+  height: 256px;
+  z-index: 0;
+}
+
